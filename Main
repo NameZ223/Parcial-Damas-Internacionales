@@ -146,3 +146,42 @@ public:
         std::cout << "\n";
     }
 
+// Obtiene la pieza en una posición específica (nullptr si está vacía)
+    Pieza* obtenerPieza(int f, int col) const {
+        if(dentroTablero(f, col)) {
+            return casillas[f][col];
+        }
+        return nullptr;
+    }
+
+    // Mueve una pieza de una posición a otra y verifica coronación
+    void moverPieza(int f1, int c1, int f2, int c2) {
+        if(casillas[f1][c1] != nullptr) {
+            casillas[f2][c2] = casillas[f1][c1];
+            casillas[f1][c1] = nullptr;
+            casillas[f2][c2]->setPos(f2, c2);
+
+            // Coronar si llega a la última fila del oponente
+            if(casillas[f2][c2]->getColor() == 'B' && f2 == tamano - 1) {
+                casillas[f2][c2]->coronar();
+            } else if(casillas[f2][c2]->getColor() == 'N' && f2 == 0) {
+                casillas[f2][c2]->coronar();
+            }
+        }
+    }
+
+    // Elimina una pieza del tablero (usada en capturas)
+    void eliminarPieza(int f, int c) {
+        if(casillas[f][c] != nullptr) {
+            delete casillas[f][c];
+            casillas[f][c] = nullptr;
+        }
+    }
+
+    // Verifica si una casilla está vacía
+    bool casillaVacia(int f, int c) const {
+        if(dentroTablero(f, c)) {
+            return casillas[f][c] == nullptr;
+        }
+        return false;
+    }
