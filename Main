@@ -347,7 +347,7 @@ public:
 limpiarBuffer();
 
             // Verificar que las coordenadas estén dentro del tablero
-            if(!tablero.dentroTablero(f1, c1)  !tablero.dentroTablero(f2, c2)) {
+           if(!tablero.dentroTablero(f1, c1) || !tablero.dentroTablero(f2, c2)) {
                 std::cout << "\nCoordenadas fuera del tablero.\n";
                 pausar();
                 continue;
@@ -356,7 +356,7 @@ limpiarBuffer();
             Pieza* pieza = tablero.obtenerPieza(f1, c1);
 
             // Verificar que la pieza pertenezca al jugador actual
-            if(pieza == nullptr  pieza->getColor() != colorActual) {
+          if(pieza == nullptr || pieza->getColor() != colorActual) {
                 std::cout << "\nEsa no es tu pieza.\n";
                 pausar();
                 continue;
