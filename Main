@@ -718,16 +718,4 @@ public:
         std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
-};
 
-// Función principal: punto de entrada del programa
-int main() {
-    #ifdef _WIN32
-    SetConsoleOutputCP(CP_UTF8);  // Configurar UTF-8 en Windows para símbolos
-    #endif
-    
-    Juego juego;
-    juego.iniciar();
-    
-    return 0;
-}
