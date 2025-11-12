@@ -229,3 +229,32 @@ public:
     }
 };
 
+// Estructura para almacenar información de un movimiento
+struct Movimiento {
+    int filaOrigen;
+    int colOrigen;
+    int filaDestino;
+    int colDestino;
+    bool esCaptura;      // Indica si el movimiento captura una pieza
+    int filaCap;         // Fila de la pieza capturada
+    int colCap;          // Columna de la pieza capturada
+};
+
+// Clase principal que controla la lógica del juego
+class Juego {
+private:
+    Tablero tablero;         // Tablero de juego
+    Jugador jugador1;        // Jugador con piezas blancas
+    Jugador jugador2;        // Jugador con piezas negras
+    int turnoActual;         // Contador de turnos (par=blancas, impar=negras)
+    bool juegoActivo;        // Indica si el juego está en curso
+
+public:
+    // Constructor: inicializa el juego
+    Juego() : jugador1('B'), jugador2('N'), turnoActual(0), juegoActivo(false) {}
+
+    // Inicia el juego y muestra el menú principal
+    void iniciar() {
+        tablero.inicializar();
+        mostrarMenu();
+    }
