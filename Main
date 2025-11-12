@@ -1,0 +1,733 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <limits>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+// Definición de colores ANSI para la terminal
+#define RESET "\033[0m"
+#define BLANCO "\033[97m"
+#define NEGRO "\033[90m"
+#define TABLERO_COLOR "\033[37m"
+#define RESALTAR "\033[93m"
+#define LIMPIAR "\033[2J\033[1;1H"
+
+// Clase que representa una pieza individual del juego
+class Pieza {
+private:
+    char color;        // 'B' para blancas, 'N' para negras
+    bool esDama;       // Indica si la pieza ha sido coronada
+    int fila;          // Posición actual en fila
+    int columna;       // Posición actual en columna
+
+public:
+    // Constructor: inicializa una pieza con color y posición
+    Pieza(char c, int f, int col) : color(c), esDama(false), fila(f), columna(col) {}
+    
+    // Retorna el color de la pieza
+    char getColor() const {
+        return color;
+    }
+    
+    // Verifica si la pieza es una Dama
+    bool getDama() const {
+        return esDama;
+    }
+    
+    // Convierte la pieza en Dama (coronación)
+    void coronar() {
+        esDama = true;
+    }
+    
+    // Obtiene la fila actual de la pieza
+    int getFila() const {
+        return fila;
+    }
+    
+    // Obtiene la columna actual de la pieza
+    int getColumna() const {
+        return columna;
+    }
+    
+    // Actualiza la posición de la pieza
+    void setPos(int f, int col) {
+        fila = f;
+        columna = col;
+    }
+};
+
+// Clase que representa el tablero de juego 10x10
+class Tablero {
+private:
+    std::vector<std::vector<Pieza*>> casillas;  // Matriz de punteros a piezas
+    int tamano;                                   // Tamaño del tablero (10x10)
+
+public:
+    // Constructor: inicializa el tablero vacío
+    Tablero() : tamano(10) {
+        casillas.resize(tamano, std::vector<Pieza*>(tamano, nullptr));
+    }
+    
+    // Destructor: libera memoria de todas las piezas
+    ~Tablero() {
+        for(int i = 0; i < tamano; i++) {
+            for(int j = 0; j < tamano; j++) {
+                if(casillas[i][j] != nullptr) {
+                    delete casillas[i][j];
+                }
+            }
+        }
+    }
+    
+    // Coloca las 20 piezas iniciales de cada jugador en el tablero
+    void inicializar() {
+        // Colocar piezas blancas en las primeras 4 filas (solo casillas oscuras)
+        for(int i = 0; i < 4; i++) {
+            for(int j = 0; j < tamano; j++) {
+                if((i + j) % 2 == 1) {
+                    casillas[i][j] = new Pieza('B', i, j);
+                }
+            }
+        }
+        
+        // Colocar piezas negras en las últimas 4 filas (solo casillas oscuras)
+        for(int i = 6; i < tamano; i++) {
+            for(int j = 0; j < tamano; j++) {
+                if((i + j) % 2 == 1) {
+                    casillas[i][j] = new Pieza('N', i, j);
+                }
+            }
+        }
+    }
+    
+    // Muestra el tablero en la consola con colores y símbolos
+    void mostrar() const {
+        std::cout << LIMPIAR;
+        std::cout << RESALTAR << "\n      DAMAS INTERNACIONALES 10x10" << RESET << "\n\n";
+        
+        // Imprimir números de columna
+        std::cout << "    ";
+        for(int i = 0; i < tamano; i++) {
+            std::cout << i << " ";
+        }
+        std::cout << "\n";
+        
+        // Imprimir cada fila del tablero
+        for(int i = 0; i < tamano; i++) {
+            std::cout << i << "   ";
+            for(int j = 0; j < tamano; j++) {
+                if(casillas[i][j] != nullptr) {
+                    // Mostrar piezas blancas
+                    if(casillas[i][j]->getColor() == 'B') {
+                        if(casillas[i][j]->getDama()) {
+                            std::cout << BLANCO << "◆ " << RESET;  // Dama blanca
+                        } else {
+                            std::cout << BLANCO << "● " << RESET;  // Pieza blanca normal
+                        }
+                    } else {
+                        // Mostrar piezas negras
+                        if(casillas[i][j]->getDama()) {
+                            std::cout << NEGRO << "◆ " << RESET;  // Dama negra
+                        } else {
+                            std::cout << NEGRO << "● " << RESET;  // Pieza negra normal
+                        }
+                    }
+                } else {
+                    // Mostrar casillas vacías
+                    if((i + j) % 2 == 1) {
+                        std::cout << TABLERO_COLOR << "□ " << RESET;  // Casilla oscura jugable
+                    } else {
+                        std::cout << TABLERO_COLOR << "· " << RESET;  // Casilla clara no jugable
+                    }
+                }
+            }
+            std::cout << "\n";
+        }
+        std::cout << "\n";
+    }
+    
+    // Obtiene la pieza en una posición específica (nullptr si está vacía)
+    Pieza* obtenerPieza(int f, int col) const {
+        if(dentroTablero(f, col)) {
+            return casillas[f][col];
+        }
+        return nullptr;
+    }
+    
+    // Mueve una pieza de una posición a otra y verifica coronación
+    void moverPieza(int f1, int c1, int f2, int c2) {
+        if(casillas[f1][c1] != nullptr) {
+            casillas[f2][c2] = casillas[f1][c1];
+            casillas[f1][c1] = nullptr;
+            casillas[f2][c2]->setPos(f2, c2);
+            
+            // Coronar si llega a la última fila del oponente
+            if(casillas[f2][c2]->getColor() == 'B' && f2 == tamano - 1) {
+                casillas[f2][c2]->coronar();
+            } else if(casillas[f2][c2]->getColor() == 'N' && f2 == 0) {
+                casillas[f2][c2]->coronar();
+            }
+        }
+    }
+    
+    // Elimina una pieza del tablero (usada en capturas)
+    void eliminarPieza(int f, int c) {
+        if(casillas[f][c] != nullptr) {
+            delete casillas[f][c];
+            casillas[f][c] = nullptr;
+        }
+    }
+    
+    // Verifica si una casilla está vacía
+    bool casillaVacia(int f, int c) const {
+        if(dentroTablero(f, c)) {
+            return casillas[f][c] == nullptr;
+        }
+        return false;
+    }
+    
+    // Verifica si una posición está dentro de los límites del tablero
+    bool dentroTablero(int f, int c) const {
+        return f >= 0 && f < tamano && c >= 0 && c < tamano;
+    }
+    
+    // Retorna el tamaño del tablero
+    int getTamano() const {
+        return tamano;
+    }
+};
+
+// Clase que representa a un jugador
+class Jugador {
+private:
+    char color;              // Color del jugador ('B' o 'N')
+    int piezasRestantes;     // Cantidad de piezas que aún tiene en el tablero
+
+public:
+    // Constructor: inicializa jugador con 20 piezas
+    Jugador(char c) : color(c), piezasRestantes(20) {}
+    
+    // Obtiene el color del jugador
+    char getColor() const {
+        return color;
+    }
+    
+    // Obtiene la cantidad de piezas restantes
+    int getPiezasRestantes() const {
+        return piezasRestantes;
+    }
+    
+    // Reduce en 1 la cantidad de piezas (cuando es capturada)
+    void decrementarPiezas() {
+        if(piezasRestantes > 0) {
+            piezasRestantes--;
+        }
+    }
+    
+    // Establece manualmente la cantidad de piezas
+    void setPiezasRestantes(int p) {
+        piezasRestantes = p;
+    }
+};
+
+// Estructura para almacenar información de un movimiento
+struct Movimiento {
+    int filaOrigen;
+    int colOrigen;
+    int filaDestino;
+    int colDestino;
+    bool esCaptura;      // Indica si el movimiento captura una pieza
+    int filaCap;         // Fila de la pieza capturada
+    int colCap;          // Columna de la pieza capturada
+};
+
+// Clase principal que controla la lógica del juego
+class Juego {
+private:
+    Tablero tablero;         // Tablero de juego
+    Jugador jugador1;        // Jugador con piezas blancas
+    Jugador jugador2;        // Jugador con piezas negras
+    int turnoActual;         // Contador de turnos (par=blancas, impar=negras)
+    bool juegoActivo;        // Indica si el juego está en curso
+
+public:
+    // Constructor: inicializa el juego
+    Juego() : jugador1('B'), jugador2('N'), turnoActual(0), juegoActivo(false) {}
+    
+    // Inicia el juego y muestra el menú principal
+    void iniciar() {
+        tablero.inicializar();
+        mostrarMenu();
+    }
+    
+    // Muestra el menú principal con opciones
+    void mostrarMenu() {
+        while(true) {
+            std::cout << "\033[2J\033[1;1H";
+            std::cout << RESALTAR << "\n=== DAMAS INTERNACIONALES 10x10 ===" << RESET << "\n\n";
+            std::cout << "1. Iniciar Partida\n";
+            std::cout << "2. Ver Reglas\n";
+            std::cout << "3. Salir\n\n";
+            std::cout << "Selecciona una opcion: ";
+            
+            int opcion;
+            std::cin >> opcion;
+            
+            // Validar entrada
+            if(std::cin.fail()) {
+                limpiarBuffer();
+                std::cout << "\nOpcion invalida.\n";
+                pausar();
+                continue;
+            }
+            
+            limpiarBuffer();
+            
+            switch(opcion) {
+                case 1:
+                    jugarPartida();
+                    break;
+                case 2:
+                    mostrarReglas();
+                    break;
+                case 3:
+                    std::cout << "\nGracias por jugar!\n";
+                    return;
+                default:
+                    std::cout << "\nOpcion invalida.\n";
+                    pausar();
+            }
+        }
+    }
+    
+    // Muestra las reglas del juego
+    void mostrarReglas() {
+        std::cout << "\033[2J\033[1;1H";
+        std::cout << RESALTAR << "\n=== REGLAS DE DAMAS INTERNACIONALES ===" << RESET << "\n\n";
+        std::cout << "- Tablero de 10x10 con 20 piezas por jugador\n";
+        std::cout << "- Las piezas se mueven en diagonal hacia adelante\n";
+        std::cout << "- Captura saltando sobre piezas enemigas\n";
+        std::cout << "- Las capturas son obligatorias\n";
+        std::cout << "- Se pueden realizar capturas multiples\n";
+        std::cout << "- Al llegar al final, la pieza se corona como Dama (◆)\n";
+        std::cout << "- Las Damas se mueven multiples casillas en diagonal\n";
+        std::cout << "- Gana quien capture todas las piezas enemigas\n";
+        std::cout << "  o deje al oponente sin movimientos validos\n\n";
+        pausar();
+    }
+    
+    // Ejecuta el bucle principal de la partida
+    void jugarPartida() {
+        juegoActivo = true;
+        turnoActual = 0;
+        
+        while(juegoActivo) {
+            tablero.mostrar();
+            
+            char colorActual = getColorActual();
+            std::cout << RESALTAR << "Turno de " << (colorActual == 'B' ? "BLANCAS (●/◆)" : "NEGRAS (●/◆)") << RESET << "\n";
+            
+            // Indicar si hay capturas obligatorias
+            if(hayCapturasDisponibles(colorActual)) {
+                std::cout << "¡Captura obligatoria!\n";
+            }
+            
+            std::cout << "\nIngresa movimiento (fila_origen col_origen fila_destino col_destino): ";
+            
+            int f1, c1, f2, c2;
+            std::cin >> f1 >> c1 >> f2 >> c2;
+            
+            // Validar entrada numérica
+            if(std::cin.fail()) {
+                limpiarBuffer();
+                std::cout << "\nEntrada invalida.\n";
+                pausar();
+                continue;
+            }
+            
+            limpiarBuffer();
+            
+            // Verificar que las coordenadas estén dentro del tablero
+            if(!tablero.dentroTablero(f1, c1) || !tablero.dentroTablero(f2, c2)) {
+                std::cout << "\nCoordenadas fuera del tablero.\n";
+                pausar();
+                continue;
+            }
+            
+            Pieza* pieza = tablero.obtenerPieza(f1, c1);
+            
+            // Verificar que la pieza pertenezca al jugador actual
+            if(pieza == nullptr || pieza->getColor() != colorActual) {
+                std::cout << "\nEsa no es tu pieza.\n";
+                pausar();
+                continue;
+            }
+            
+            // Validar que el movimiento sea legal
+            if(!validarMovimiento(f1, c1, f2, c2, colorActual)) {
+                std::cout << "\nMovimiento invalido.\n";
+                pausar();
+                continue;
+            }
+            
+            // Ejecutar el movimiento
+            realizarMovimiento(f1, c1, f2, c2);
+            
+            // Verificar condiciones de victoria
+            if(verificarVictoria()) {
+                tablero.mostrar();
+                std::cout << RESALTAR << "\n¡" << (colorActual == 'B' ? "BLANCAS" : "NEGRAS") << " GANAN!\n" << RESET;
+                pausar();
+                juegoActivo = false;
+                break;
+            }
+            
+            cambiarTurno();
+        }
+    }
+    
+    // Valida si un movimiento es legal según las reglas del juego
+    bool validarMovimiento(int f1, int c1, int f2, int c2, char colorActual) {
+        Pieza* pieza = tablero.obtenerPieza(f1, c1);
+        
+        // Verificar que la pieza existe y pertenece al jugador
+        if(pieza == nullptr || pieza->getColor() != colorActual) {
+            return false;
+        }
+        
+        // Verificar que el destino esté vacío
+        if(!tablero.casillaVacia(f2, c2)) {
+            return false;
+        }
+        
+        // Verificar que el destino sea una casilla oscura (jugable)
+        if((f2 + c2) % 2 == 0) {
+            return false;
+        }
+        
+        int filaCap, colCap;
+        bool esMovCaptura = esCaptura(f1, c1, f2, c2, pieza, filaCap, colCap);
+        
+        // Si hay capturas disponibles, el movimiento debe ser una captura
+        if(hayCapturasDisponibles(colorActual)) {
+            if(!esMovCaptura) {
+                return false;
+            }
+        }
+        
+        if(esMovCaptura) {
+            return true;
+        }
+        
+        return esMovimientoSimple(f1, c1, f2, c2, pieza);
+    }
+    
+    // Verifica si un movimiento es un movimiento simple (sin captura)
+    bool esMovimientoSimple(int f1, int c1, int f2, int c2, Pieza* pieza) {
+        int df = f2 - f1;
+        int dc = c2 - c1;
+        
+        // Verificar que el movimiento sea diagonal
+        if(std::abs(df) != std::abs(dc)) {
+            return false;
+        }
+        
+        if(pieza->getDama()) {
+            // Las Damas pueden moverse múltiples casillas en diagonal
+            int pasos = std::abs(df);
+            int dirF = (df > 0) ? 1 : -1;
+            int dirC = (dc > 0) ? 1 : -1;
+            
+            // Verificar que no haya piezas en el camino
+            for(int i = 1; i < pasos; i++) {
+                if(!tablero.casillaVacia(f1 + i * dirF, c1 + i * dirC)) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            // Las piezas normales solo se mueven una casilla
+            if(std::abs(df) != 1 || std::abs(dc) != 1) {
+                return false;
+            }
+            
+            // Las piezas normales solo avanzan hacia adelante
+            if(pieza->getColor() == 'B') {
+                return df > 0;  // Blancas avanzan hacia abajo
+            } else {
+                return df < 0;  // Negras avanzan hacia arriba
+            }
+        }
+    }
+    
+    // Verifica si un movimiento es una captura válida
+    bool esCaptura(int f1, int c1, int f2, int c2, Pieza* pieza, int& filaCap, int& colCap) {
+        int df = f2 - f1;
+        int dc = c2 - c1;
+        
+        // Verificar que el movimiento sea diagonal
+        if(std::abs(df) != std::abs(dc)) {
+            return false;
+        }
+        
+        int pasos = std::abs(df);
+        int dirF = (df > 0) ? 1 : -1;
+        int dirC = (dc > 0) ? 1 : -1;
+        
+        if(pieza->getDama()) {
+            // Las Damas pueden capturar a distancia
+            int enemigosEncontrados = 0;
+            int ultFilaCap = -1, ultColCap = -1;
+            
+            // Recorrer el camino diagonal
+            for(int i = 1; i < pasos; i++) {
+                int fActual = f1 + i * dirF;
+                int cActual = c1 + i * dirC;
+                
+                Pieza* piezaEnCamino = tablero.obtenerPieza(fActual, cActual);
+                
+                if(piezaEnCamino != nullptr) {
+                    // No se puede saltar sobre piezas propias
+                    if(piezaEnCamino->getColor() == pieza->getColor()) {
+                        return false;
+                    } else {
+                        enemigosEncontrados++;
+                        ultFilaCap = fActual;
+                        ultColCap = cActual;
+                        
+                        // Solo se puede capturar una pieza por movimiento
+                        if(enemigosEncontrados > 1) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            
+            // Debe haber exactamente una pieza enemiga en el camino
+            if(enemigosEncontrados == 1) {
+                filaCap = ultFilaCap;
+                colCap = ultColCap;
+                return true;
+            }
+            
+            return false;
+        } else {
+            // Las piezas normales capturan saltando 2 casillas
+            if(pasos != 2) {
+                return false;
+            }
+            
+            int fMedia = f1 + dirF;
+            int cMedia = c1 + dirC;
+            
+            Pieza* piezaMedia = tablero.obtenerPieza(fMedia, cMedia);
+            
+            // Debe haber una pieza enemiga en la casilla intermedia
+            if(piezaMedia != nullptr && piezaMedia->getColor() != pieza->getColor()) {
+                filaCap = fMedia;
+                colCap = cMedia;
+                return true;
+            }
+            
+            return false;
+        }
+    }
+    
+    // Obtiene todas las capturas disponibles para un color
+    std::vector<Movimiento> obtenerCapturasDisponibles(char color) {
+        std::vector<Movimiento> capturas;
+        
+        // Recorrer todo el tablero buscando piezas del color indicado
+        for(int i = 0; i < tablero.getTamano(); i++) {
+            for(int j = 0; j < tablero.getTamano(); j++) {
+                Pieza* pieza = tablero.obtenerPieza(i, j);
+                
+                if(pieza != nullptr && pieza->getColor() == color) {
+                    // Probar las 4 direcciones diagonales
+                    std::vector<std::pair<int, int>> direcciones = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+                    
+                    for(auto& dir : direcciones) {
+                        if(pieza->getDama()) {
+                            // Las Damas pueden capturar a múltiples distancias
+                            for(int dist = 2; dist < tablero.getTamano(); dist++) {
+                                int f2 = i + dir.first * dist;
+                                int c2 = j + dir.second * dist;
+                                
+                                if(!tablero.dentroTablero(f2, c2)) break;
+                                
+                                int filaCap, colCap;
+                                if(esCaptura(i, j, f2, c2, pieza, filaCap, colCap)) {
+                                    Movimiento mov;
+                                    mov.filaOrigen = i;
+                                    mov.colOrigen = j;
+                                    mov.filaDestino = f2;
+                                    mov.colDestino = c2;
+                                    mov.esCaptura = true;
+                                    mov.filaCap = filaCap;
+                                    mov.colCap = colCap;
+                                    capturas.push_back(mov);
+                                }
+                                
+                                if(!tablero.casillaVacia(f2, c2)) break;
+                            }
+                        } else {
+                            // Las piezas normales capturan a distancia 2
+                            int f2 = i + dir.first * 2;
+                            int c2 = j + dir.second * 2;
+                            
+                            if(tablero.dentroTablero(f2, c2)) {
+                                int filaCap, colCap;
+                                if(esCaptura(i, j, f2, c2, pieza, filaCap, colCap)) {
+                                    Movimiento mov;
+                                    mov.filaOrigen = i;
+                                    mov.colOrigen = j;
+                                    mov.filaDestino = f2;
+                                    mov.colDestino = c2;
+                                    mov.esCaptura = true;
+                                    mov.filaCap = filaCap;
+                                    mov.colCap = colCap;
+                                    capturas.push_back(mov);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return capturas;
+    }
+    
+    // Verifica si hay capturas disponibles para un color (regla de captura obligatoria)
+    bool hayCapturasDisponibles(char color) {
+        return !obtenerCapturasDisponibles(color).empty();
+    }
+    
+    // Ejecuta un movimiento en el tablero
+    void realizarMovimiento(int f1, int c1, int f2, int c2) {
+        Pieza* pieza = tablero.obtenerPieza(f1, c1);
+        int filaCap, colCap;
+        
+        // Si es una captura, eliminar la pieza capturada
+        if(esCaptura(f1, c1, f2, c2, pieza, filaCap, colCap)) {
+            tablero.eliminarPieza(filaCap, colCap);
+            
+            // Actualizar contador de piezas del oponente
+            if(pieza->getColor() == 'B') {
+                jugador2.decrementarPiezas();
+            } else {
+                jugador1.decrementarPiezas();
+            }
+        }
+        
+        // Mover la pieza a su nueva posición
+        tablero.moverPieza(f1, c1, f2, c2);
+    }
+    
+    // Verifica si algún jugador ha ganado
+    bool verificarVictoria() {
+        // Victoria por captura de todas las piezas
+        if(jugador1.getPiezasRestantes() == 0) {
+            return true;
+        }
+        
+        if(jugador2.getPiezasRestantes() == 0) {
+            return true;
+        }
+        
+        // Victoria por bloqueo (oponente sin movimientos válidos)
+        char colorActual = getColorActual();
+        char colorOponente = (colorActual == 'B') ? 'N' : 'B';
+        
+        if(!tieneMovimientosValidos(colorOponente)) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    // Verifica si un jugador tiene al menos un movimiento válido
+    bool tieneMovimientosValidos(char color) {
+        // Recorrer todas las piezas del color indicado
+        for(int i = 0; i < tablero.getTamano(); i++) {
+            for(int j = 0; j < tablero.getTamano(); j++) {
+                Pieza* pieza = tablero.obtenerPieza(i, j);
+                
+                if(pieza != nullptr && pieza->getColor() == color) {
+                    // Probar movimientos en las 4 direcciones diagonales
+                    std::vector<std::pair<int, int>> direcciones = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+                    
+                    for(auto& dir : direcciones) {
+                        if(pieza->getDama()) {
+                            // Probar múltiples distancias para Damas
+                            for(int dist = 1; dist < tablero.getTamano(); dist++) {
+                                int f2 = i + dir.first * dist;
+                                int c2 = j + dir.second * dist;
+                                
+                                if(!tablero.dentroTablero(f2, c2)) break;
+                                
+                                if(validarMovimiento(i, j, f2, c2, color)) {
+                                    return true;
+                                }
+                                
+                                if(!tablero.casillaVacia(f2, c2)) break;
+                            }
+                        } else {
+                            // Probar distancias 1 y 2 para piezas normales
+                            for(int dist = 1; dist <= 2; dist++) {
+                                int f2 = i + dir.first * dist;
+                                int c2 = j + dir.second * dist;
+                                
+                                if(tablero.dentroTablero(f2, c2)) {
+                                    if(validarMovimiento(i, j, f2, c2, color)) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    // Cambia el turno al siguiente jugador
+    void cambiarTurno() {
+        turnoActual++;
+    }
+    
+    // Obtiene el color del jugador actual
+    char getColorActual() const {
+        return (turnoActual % 2 == 0) ? 'B' : 'N';
+    }
+    
+    // Pausa la ejecución hasta que el usuario presione ENTER
+    void pausar() {
+        std::cout << "\nPresiona ENTER para continuar...";
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cin.get();
+    }
+    
+    // Limpia el buffer de entrada para evitar errores
+    void limpiarBuffer() {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+};
+
+// Función principal: punto de entrada del programa
+int main() {
+    #ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);  // Configurar UTF-8 en Windows para símbolos
+    #endif
+    
+    Juego juego;
+    juego.iniciar();
+    
+    return 0;
+}
