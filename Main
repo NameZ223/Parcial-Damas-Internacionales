@@ -35,6 +35,7 @@ public:
     // Verifica si la pieza es una Dama
     bool getDama() const {
         return esDama;
+
     }
 
     // Convierte la pieza en Dama (coronación)
@@ -258,3 +259,87 @@ public:
         tablero.inicializar();
         mostrarMenu();
     }
+  // Muestra el menú principal con opciones
+    void mostrarMenu() {
+        while(true) {
+            std::cout << "\033[2J\033[1;1H";
+            std::cout << RESALTAR << "\n=== DAMAS INTERNACIONALES 10x10 ===" << RESET << "\n\n";
+            std::cout << "1. Iniciar Partida\n";
+            std::cout << "2. Ver Reglas\n";
+            std::cout << "3. Salir\n\n";
+            std::cout << "Selecciona una opcion: ";
+            
+            int opcion;
+            std::cin >> opcion;
+            
+            // Validar entrada
+            if(std::cin.fail()) {
+                limpiarBuffer();
+                std::cout << "\nOpcion invalida.\n";
+                pausar();
+                continue;
+            }
+            
+            limpiarBuffer();
+            
+            switch(opcion) {
+                case 1:
+                    jugarPartida();
+                    break;
+                case 2:
+                    mostrarReglas();
+                    break;
+                case 3:
+                    std::cout << "\nGracias por jugar!\n";
+                    return;
+                default:
+                    std::cout << "\nOpcion invalida.\n";
+                    pausar();
+            }
+        }
+    }
+    
+    // Muestra las reglas del juego
+    void mostrarReglas() {
+        std::cout << "\033[2J\033[1;1H";
+        std::cout << RESALTAR << "\n=== REGLAS DE DAMAS INTERNACIONALES ===" << RESET << "\n\n";
+        std::cout << "- Tablero de 10x10 con 20 piezas por jugador\n";
+        std::cout << "- Las piezas se mueven en diagonal hacia adelante\n";
+        std::cout << "- Captura saltando sobre piezas enemigas\n";
+        std::cout << "- Las capturas son obligatorias\n";
+        std::cout << "- Se pueden realizar capturas multiples\n";
+        std::cout << "- Al llegar al final, la pieza se corona como Dama (◆)\n";
+        std::cout << "- Las Damas se mueven multiples casillas en diagonal\n";
+        std::cout << "- Gana quien capture todas las piezas enemigas\n";
+        std::cout << "  o deje al oponente sin movimientos validos\n\n";
+        pausar();
+    }
+    
+    // Ejecuta el bucle principal de la partida
+    void jugarPartida() {
+        juegoActivo = true;
+        turnoActual = 0;
+        
+        while(juegoActivo) {
+            tablero.mostrar();
+            
+            char colorActual = getColorActual();
+            std::cout << RESALTAR << "Turno de " << (colorActual == 'B' ? "BLANCAS (●/◆)" : "NEGRAS (●/◆)") << RESET << "\n";
+            
+            // Indicar si hay capturas obligatorias
+            if(hayCapturasDisponibles(colorActual)) {
+                std::cout << "¡Captura obligatoria!\n";
+            }
+            
+            std::cout << "\nIngresa movimiento (fila_origen col_origen fila_destino col_destino): ";
+            
+            int f1, c1, f2, c2;
+            std::cin >> f1 >> c1 >> f2 >> c2;
+            
+            // Validar entrada numérica
+            if(std::cin.fail()) {
+                limpiarBuffer();
+                std::cout << "\nEntrada invalida.\n";
+                pausar();
+                continue;
+            }
