@@ -58,3 +58,25 @@ public:
         columna = col;
     }
 };
+// Clase que representa el tablero de juego 10x10
+class Tablero {
+private:
+    std::vector<std::vector<Pieza*>> casillas;  // Matriz de punteros a piezas
+    int tamano;                                   // Tamaño del tablero (10x10)
+
+public:
+    // Constructor: inicializa el tablero vacío
+    Tablero() : tamano(10) {
+        casillas.resize(tamano, std::vector<Pieza*>(tamano, nullptr));
+    }
+    
+    // Destructor: libera memoria de todas las piezas
+    ~Tablero() {
+        for(int i = 0; i < tamano; i++) {
+            for(int j = 0; j < tamano; j++) {
+                if(casillas[i][j] != nullptr) {
+                    delete casillas[i][j];
+                }
+            }
+        }
+    }
