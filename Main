@@ -604,3 +604,87 @@ if(!tablero.casillaVacia(f2, c2)) break;
     void realizarMovimiento(int f1, int c1, int f2, int c2) {
         Pieza* pieza = tablero.obtenerPieza(f1, c1);
         int filaCap, colCap;
+     // Si es una captura, eliminar la pieza capturada
+        if(esCaptura(f1, c1, f2, c2, pieza, filaCap, colCap)) {
+            tablero.eliminarPieza(filaCap, colCap);
+            
+            // Actualizar contador de piezas del oponente
+            if(pieza->getColor() == 'B') {
+                jugador2.decrementarPiezas();
+            } else {
+                jugador1.decrementarPiezas();
+            }
+        }
+        
+        // Mover la pieza a su nueva posición
+        tablero.moverPieza(f1, c1, f2, c2);
+    }
+    
+    // Verifica si algún jugador ha ganado
+    bool verificarVictoria() {
+        // Victoria por captura de todas las piezas
+        if(jugador1.getPiezasRestantes() == 0) {
+            return true;
+        }
+        
+        if(jugador2.getPiezasRestantes() == 0) {
+            return true;
+        }
+        
+        // Victoria por bloqueo (oponente sin movimientos válidos)
+        char colorActual = getColorActual();
+        char colorOponente = (colorActual == 'B') ? 'N' : 'B';
+        
+        if(!tieneMovimientosValidos(colorOponente)) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    // Verifica si un jugador tiene al menos un movimiento válido
+    bool tieneMovimientosValidos(char color) {
+        // Recorrer todas las piezas del color indicado
+        for(int i = 0; i < tablero.getTamano(); i++) {
+            for(int j = 0; j < tablero.getTamano(); j++) {
+                Pieza* pieza = tablero.obtenerPieza(i, j);
+                
+                if(pieza != nullptr && pieza->getColor() == color) {
+                    // Probar movimientos en las 4 direcciones diagonales
+                    std::vector<std::pair<int, int>> direcciones = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+                    
+                    for(auto& dir : direcciones) {
+                        if(pieza->getDama()) {
+                            // Probar múltiples distancias para Damas
+                            for(int dist = 1; dist < tablero.getTamano(); dist++) {
+                                int f2 = i + dir.first * dist;
+                                int c2 = j + dir.second * dist;
+                                
+                                if(!tablero.dentroTablero(f2, c2)) break;
+                                
+                                if(validarMovimiento(i, j, f2, c2, color)) {
+                                    return true;
+                                }
+                                
+                                if(!tablero.casillaVacia(f2, c2)) break;
+                            }
+                        } else {
+                            // Probar distancias 1 y 2 para piezas normales
+                            for(int dist = 1; dist <= 2; dist++) {
+                                int f2 = i + dir.first * dist;
+                                int c2 = j + dir.second * dist;
+                                
+                                if(tablero.dentroTablero(f2, c2)) {
+                                    if(validarMovimiento(i, j, f2, c2, color)) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return false;
+    }
