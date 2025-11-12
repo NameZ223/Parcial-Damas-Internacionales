@@ -1,1 +1,25 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <limits>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+// Definición de colores ANSI para la terminal
+#define RESET "\033[0m"
+#define BLANCO "\033[97m"
+#define NEGRO "\033[90m"
+#define TABLERO_COLOR "\033[37m"
+#define RESALTAR "\033[93m"
+#define LIMPIAR "\033[2J\033[1;1H"
+
+// Clase que representa una pieza individual del juego
+class Pieza {
+private:
+    char color;        // 'B' para blancas, 'N' para negras
+    bool esDama;       // Indica si la pieza ha sido coronada
+    int fila;          // Posición actual en fila
+    int columna;       // Posición actual en columna
 
