@@ -565,3 +565,42 @@ return true;
                                     capturas.push_back(mov);
                                 }
                                 
+if(!tablero.casillaVacia(f2, c2)) break;
+                            }
+                        } else {
+                            // Las piezas normales capturan a distancia 2
+                            int f2 = i + dir.first * 2;
+                            int c2 = j + dir.second * 2;
+
+                            if(tablero.dentroTablero(f2, c2)) {
+                                int filaCap, colCap;
+                                if(esCaptura(i, j, f2, c2, pieza, filaCap, colCap)) {
+                                    Movimiento mov;
+                                    mov.filaOrigen = i;
+                                    mov.colOrigen = j;
+                                    mov.filaDestino = f2;
+                                    mov.colDestino = c2;
+                                    mov.esCaptura = true;
+                                    mov.filaCap = filaCap;
+                                    mov.colCap = colCap;
+                                    capturas.push_back(mov);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return capturas;
+    }
+
+    // Verifica si hay capturas disponibles para un color (regla de captura obligatoria)
+    bool hayCapturasDisponibles(char color) {
+        return !obtenerCapturasDisponibles(color).empty();
+    }
+
+    // Ejecuta un movimiento en el tablero
+    void realizarMovimiento(int f1, int c1, int f2, int c2) {
+        Pieza* pieza = tablero.obtenerPieza(f1, c1);
+        int filaCap, colCap;
