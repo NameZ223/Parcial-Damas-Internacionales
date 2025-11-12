@@ -481,3 +481,87 @@ return true;
             for(int i = 1; i < pasos; i++) {
                 int fActual = f1 + i * dirF;
                 int cActual = c1 + i * dirC;
+            Pieza* piezaEnCamino = tablero.obtenerPieza(fActual, cActual);
+                
+                if(piezaEnCamino != nullptr) {
+                    // No se puede saltar sobre piezas propias
+                    if(piezaEnCamino->getColor() == pieza->getColor()) {
+                        return false;
+                    } else {
+                        enemigosEncontrados++;
+                        ultFilaCap = fActual;
+                        ultColCap = cActual;
+                        
+                        // Solo se puede capturar una pieza por movimiento
+                        if(enemigosEncontrados > 1) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            
+            // Debe haber exactamente una pieza enemiga en el camino
+            if(enemigosEncontrados == 1) {
+                filaCap = ultFilaCap;
+                colCap = ultColCap;
+                return true;
+            }
+            
+            return false;
+        } else {
+            // Las piezas normales capturan saltando 2 casillas
+            if(pasos != 2) {
+                return false;
+            }
+            
+            int fMedia = f1 + dirF;
+            int cMedia = c1 + dirC;
+            
+            Pieza* piezaMedia = tablero.obtenerPieza(fMedia, cMedia);
+            
+            // Debe haber una pieza enemiga en la casilla intermedia
+            if(piezaMedia != nullptr && piezaMedia->getColor() != pieza->getColor()) {
+                filaCap = fMedia;
+                colCap = cMedia;
+                return true;
+            }
+            
+            return false;
+        }
+    }
+    
+    // Obtiene todas las capturas disponibles para un color
+    std::vector<Movimiento> obtenerCapturasDisponibles(char color) {
+        std::vector<Movimiento> capturas;
+        
+        // Recorrer todo el tablero buscando piezas del color indicado
+        for(int i = 0; i < tablero.getTamano(); i++) {
+            for(int j = 0; j < tablero.getTamano(); j++) {
+                Pieza* pieza = tablero.obtenerPieza(i, j);
+                
+                if(pieza != nullptr && pieza->getColor() == color) {
+                    // Probar las 4 direcciones diagonales
+                    std::vector<std::pair<int, int>> direcciones = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+                    
+                    for(auto& dir : direcciones) {
+                        if(pieza->getDama()) {
+                            // Las Damas pueden capturar a múltiples distancias
+                            for(int dist = 2; dist < tablero.getTamano(); dist++) {
+                                int f2 = i + dir.first * dist;
+                                int c2 = j + dir.second * dist;
+                                
+                                if(!tablero.dentroTablero(f2, c2)) break;
+                                
+                                int filaCap, colCap;
+                                if(esCaptura(i, j, f2, c2, pieza, filaCap, colCap)) {
+                                    Movimiento mov;
+                                    mov.filaOrigen = i;
+                                    mov.colOrigen = j;
+                                    mov.filaDestino = f2;
+                                    mov.colDestino = c2;
+                                    mov.esCaptura = true;
+                                    mov.filaCap = filaCap;
+                                    mov.colCap = colCap;
+                                    capturas.push_back(mov);
+                                }
+                                
