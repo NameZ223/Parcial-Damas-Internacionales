@@ -23,3 +23,38 @@ private:
     int fila;          // Posición actual en fila
     int columna;       // Posición actual en columna
 
+public:
+    // Constructor: inicializa una pieza con color y posición
+    Pieza(char c, int f, int col) : color(c), esDama(false), fila(f), columna(col) {}
+
+    // Retorna el color de la pieza
+    char getColor() const {
+        return color;
+    }
+
+    // Verifica si la pieza es una Dama
+    bool getDama() const {
+        return esDama;
+    }
+
+    // Convierte la pieza en Dama (coronación)
+    void coronar() {
+        esDama = true;
+    }
+
+    // Obtiene la fila actual de la pieza
+    int getFila() const {
+        return fila;
+    }
+
+    // Obtiene la columna actual de la pieza
+    int getColumna() const {
+        return columna;
+    }
+
+    // Actualiza la posición de la pieza
+    void setPos(int f, int col) {
+        fila = f;
+        columna = col;
+    }
+};
