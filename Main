@@ -688,3 +688,38 @@ if(!tablero.casillaVacia(f2, c2)) break;
         
         return false;
     }
+// Cambia el turno al siguiente jugador
+    void cambiarTurno() {
+        turnoActual++;
+    }
+
+    // Obtiene el color del jugador actual
+    char getColorActual() const {
+        return (turnoActual % 2 == 0) ? 'B' : 'N';
+    }
+
+    // Pausa la ejecución hasta que el usuario presione ENTER
+    void pausar() {
+        std::cout << "\nPresiona ENTER para continuar...";
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cin.get();
+    }
+
+    // Limpia el buffer de entrada para evitar errores
+    void limpiarBuffer() {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+};
+
+// Función principal: punto de entrada del programa
+int main() {
+    #ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);  // Configurar UTF-8 en Windows para símbolos
+    #endif
+
+    Juego juego;
+    juego.iniciar();
+
+    return 0;
+}
