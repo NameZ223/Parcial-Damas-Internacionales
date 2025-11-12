@@ -343,3 +343,44 @@ public:
                 pausar();
                 continue;
             }
+
+limpiarBuffer();
+
+            // Verificar que las coordenadas estén dentro del tablero
+            if(!tablero.dentroTablero(f1, c1)  !tablero.dentroTablero(f2, c2)) {
+                std::cout << "\nCoordenadas fuera del tablero.\n";
+                pausar();
+                continue;
+            }
+
+            Pieza* pieza = tablero.obtenerPieza(f1, c1);
+
+            // Verificar que la pieza pertenezca al jugador actual
+            if(pieza == nullptr  pieza->getColor() != colorActual) {
+                std::cout << "\nEsa no es tu pieza.\n";
+                pausar();
+                continue;
+            }
+
+            // Validar que el movimiento sea legal
+            if(!validarMovimiento(f1, c1, f2, c2, colorActual)) {
+                std::cout << "\nMovimiento invalido.\n";
+                pausar();
+                continue;
+            }
+
+            // Ejecutar el movimiento
+            realizarMovimiento(f1, c1, f2, c2);
+
+            // Verificar condiciones de victoria
+            if(verificarVictoria()) {
+                tablero.mostrar();
+                std::cout << RESALTAR << "\n¡" << (colorActual == 'B' ? "BLANCAS" : "NEGRAS") << " GANAN!\n" << RESET;
+                pausar();
+                juegoActivo = false;
+                break;
+            }
+
+            cambiarTurno();
+        }
+    }
