@@ -185,3 +185,47 @@ public:
         }
         return false;
     }
+   // Verifica si una posición está dentro de los límites del tablero
+    bool dentroTablero(int f, int c) const {
+        return f >= 0 && f < tamano && c >= 0 && c < tamano;
+    }
+    
+    // Retorna el tamaño del tablero
+    int getTamano() const {
+        return tamano;
+    }
+};
+
+// Clase que representa a un jugador
+class Jugador {
+private:
+    char color;              // Color del jugador ('B' o 'N')
+    int piezasRestantes;     // Cantidad de piezas que aún tiene en el tablero
+
+public:
+    // Constructor: inicializa jugador con 20 piezas
+    Jugador(char c) : color(c), piezasRestantes(20) {}
+    
+    // Obtiene el color del jugador
+    char getColor() const {
+        return color;
+    }
+    
+    // Obtiene la cantidad de piezas restantes
+    int getPiezasRestantes() const {
+        return piezasRestantes;
+    }
+    
+    // Reduce en 1 la cantidad de piezas (cuando es capturada)
+    void decrementarPiezas() {
+        if(piezasRestantes > 0) {
+            piezasRestantes--;
+        }
+    }
+    
+    // Establece manualmente la cantidad de piezas
+    void setPiezasRestantes(int p) {
+        piezasRestantes = p;
+    }
+};
+
