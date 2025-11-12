@@ -442,3 +442,42 @@ limpiarBuffer();
                     return false;
                 }
             }
+return true;
+        } else {
+            // Las piezas normales solo se mueven una casilla
+            if(std::abs(df) != 1 || std::abs(dc) != 1) {
+                return false;
+            }
+
+            // Las piezas normales solo avanzan hacia adelante
+            if(pieza->getColor() == 'B') {
+                return df > 0;  // Blancas avanzan hacia abajo
+            } else {
+                return df < 0;  // Negras avanzan hacia arriba
+            }
+        }
+    }
+
+    // Verifica si un movimiento es una captura válida
+    bool esCaptura(int f1, int c1, int f2, int c2, Pieza* pieza, int& filaCap, int& colCap) {
+        int df = f2 - f1;
+        int dc = c2 - c1;
+
+        // Verificar que el movimiento sea diagonal
+        if(std::abs(df) != std::abs(dc)) {
+            return false;
+        }
+
+        int pasos = std::abs(df);
+        int dirF = (df > 0) ? 1 : -1;
+        int dirC = (dc > 0) ? 1 : -1;
+
+        if(pieza->getDama()) {
+            // Las Damas pueden capturar a distancia
+            int enemigosEncontrados = 0;
+            int ultFilaCap = -1, ultColCap = -1;
+
+            // Recorrer el camino diagonal
+            for(int i = 1; i < pasos; i++) {
+                int fActual = f1 + i * dirF;
+                int cActual = c1 + i * dirC;
