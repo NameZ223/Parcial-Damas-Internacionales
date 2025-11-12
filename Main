@@ -33,10 +33,10 @@ public:
     }
 
     // Verifica si la pieza es una Dama
-    bool getDama() const {
-        return esDama;
+   bool getDama() const {
+    return esDama;
 
-    }
+}
 
     // Convierte la pieza en Dama (coronación)
     void coronar() {
