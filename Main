@@ -384,3 +384,61 @@ limpiarBuffer();
             cambiarTurno();
         }
     }
+  // Valida si un movimiento es legal según las reglas del juego
+    bool validarMovimiento(int f1, int c1, int f2, int c2, char colorActual) {
+        Pieza* pieza = tablero.obtenerPieza(f1, c1);
+        
+        // Verificar que la pieza existe y pertenece al jugador
+        if(pieza == nullptr || pieza->getColor() != colorActual) {
+            return false;
+        }
+        
+        // Verificar que el destino esté vacío
+        if(!tablero.casillaVacia(f2, c2)) {
+            return false;
+        }
+        
+        // Verificar que el destino sea una casilla oscura (jugable)
+        if((f2 + c2) % 2 == 0) {
+            return false;
+        }
+        
+        int filaCap, colCap;
+        bool esMovCaptura = esCaptura(f1, c1, f2, c2, pieza, filaCap, colCap);
+        
+        // Si hay capturas disponibles, el movimiento debe ser una captura
+        if(hayCapturasDisponibles(colorActual)) {
+            if(!esMovCaptura) {
+                return false;
+            }
+        }
+        
+        if(esMovCaptura) {
+            return true;
+        }
+        
+        return esMovimientoSimple(f1, c1, f2, c2, pieza);
+    }
+    
+    // Verifica si un movimiento es un movimiento simple (sin captura)
+    bool esMovimientoSimple(int f1, int c1, int f2, int c2, Pieza* pieza) {
+        int df = f2 - f1;
+        int dc = c2 - c1;
+        
+        // Verificar que el movimiento sea diagonal
+        if(std::abs(df) != std::abs(dc)) {
+            return false;
+        }
+        
+        if(pieza->getDama()) {
+            // Las Damas pueden moverse múltiples casillas en diagonal
+            int pasos = std::abs(df);
+            int dirF = (df > 0) ? 1 : -1;
+            int dirC = (dc > 0) ? 1 : -1;
+            
+            // Verificar que no haya piezas en el camino
+            for(int i = 1; i < pasos; i++) {
+                if(!tablero.casillaVacia(f1 + i * dirF, c1 + i * dirC)) {
+                    return false;
+                }
+            }
