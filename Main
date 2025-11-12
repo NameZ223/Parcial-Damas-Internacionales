@@ -80,3 +80,28 @@ public:
             }
         }
     }
+// Coloca las 20 piezas iniciales de cada jugador en el tablero
+    void inicializar() {
+        // Colocar piezas blancas en las primeras 4 filas (solo casillas oscuras)
+        for(int i = 0; i < 4; i++) {
+            for(int j = 0; j < tamano; j++) {
+                if((i + j) % 2 == 1) {
+                    casillas[i][j] = new Pieza('B', i, j);
+                }
+            }
+        }
+
+        // Colocar piezas negras en las últimas 4 filas (solo casillas oscuras)
+        for(int i = 6; i < tamano; i++) {
+            for(int j = 0; j < tamano; j++) {
+                if((i + j) % 2 == 1) {
+                    casillas[i][j] = new Pieza('N', i, j);
+                }
+            }
+        }
+    }
+
+    // Muestra el tablero en la consola con colores y símbolos
+    void mostrar() const {
+        std::cout << LIMPIAR;
+        std::cout << RESALTAR << "\n      DAMAS INTERNACIONALES 10x10" << RESET << "\n\n";
