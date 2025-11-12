@@ -105,3 +105,44 @@ public:
     void mostrar() const {
         std::cout << LIMPIAR;
         std::cout << RESALTAR << "\n      DAMAS INTERNACIONALES 10x10" << RESET << "\n\n";
+       // Imprimir números de columna
+        std::cout << "    ";
+        for(int i = 0; i < tamano; i++) {
+            std::cout << i << " ";
+        }
+        std::cout << "\n";
+        
+        // Imprimir cada fila del tablero
+        for(int i = 0; i < tamano; i++) {
+            std::cout << i << "   ";
+            for(int j = 0; j < tamano; j++) {
+                if(casillas[i][j] != nullptr) {
+                    // Mostrar piezas blancas
+                    if(casillas[i][j]->getColor() == 'B') {
+                        if(casillas[i][j]->getDama()) {
+                            std::cout << BLANCO << "◆ " << RESET;  // Dama blanca
+                        } else {
+                            std::cout << BLANCO << "● " << RESET;  // Pieza blanca normal
+                        }
+                    } else {
+                        // Mostrar piezas negras
+                        if(casillas[i][j]->getDama()) {
+                            std::cout << NEGRO << "◆ " << RESET;  // Dama negra
+                        } else {
+                            std::cout << NEGRO << "● " << RESET;  // Pieza negra normal
+                        }
+                    }
+                } else {
+                    // Mostrar casillas vacías
+                    if((i + j) % 2 == 1) {
+                        std::cout << TABLERO_COLOR << "□ " << RESET;  // Casilla oscura jugable
+                    } else {
+                        std::cout << TABLERO_COLOR << "· " << RESET;  // Casilla clara no jugable
+                    }
+                }
+            }
+            std::cout << "\n";
+        }
+        std::cout << "\n";
+    }
+
